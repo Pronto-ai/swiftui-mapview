@@ -34,15 +34,18 @@ public protocol MapViewAnnotation: MKAnnotation {
     /**
      The image to display as a glyph in the annotation's view.
      */
-    var glyphImage: UIImage? {
-        get
-    }
+  #if os(iOS)
+    var glyphImage: UIImage? { get }
+  #elseif os(macOS)
+    var glyphImage: NSImage? { get }
+  #endif
     
     /**
      The tint color of the annotations's view.
      */
-    var tintColor: UIColor? {
-        get
-    }
-    
+  #if os(iOS)
+    var tintColor: UIColor? { get }
+  #elseif os(macOS)
+    var tintColor: NSColor? { get }
+  #endif    
 }

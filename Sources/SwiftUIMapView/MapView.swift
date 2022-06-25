@@ -5,11 +5,14 @@
 //  Created by Sören Gade on 14.01.20.
 //  Copyright © 2020 Sören Gade. All rights reserved.
 //
-
 import SwiftUI
 import MapKit
 import Combine
+#if os(iOS)
 import UIKit
+#elseif os(macOS)
+import AppKit
+#endif
 
 /**
  Displays a map. The contents of the map are provided by the Apple Maps service.
@@ -20,14 +23,13 @@ import UIKit
  - Copyright: 2020—2022 Sören Gade
  */
 @available(iOS, introduced: 13.0)
-@available(iOS, deprecated: 14.0, message: "Please consider using the official Map view.")
-public struct MapView: UIViewRepresentable {
+public struct MapView {
     
     // MARK: Properties
     /**
      The map type that is displayed.
      */
-    let mapType: MKMapType
+    var mapType: MKMapType = .standard
     
     /**
      The region that is displayed.
@@ -80,22 +82,19 @@ public struct MapView: UIViewRepresentable {
      Creates a new MapView.
      
      - Parameters:
-        - mapType: The map type to display.
         - region: The region to display.
         - showsUserLocation: Whether to display the user's current location.
         - userTrackingMode: The user tracking mode.
         - annotations: A list of `MapAnnotation`s that should be displayed on the map.
         - selectedAnnotation: A binding to the currently selected annotation, or `nil`.
      */
-    public init(mapType: MKMapType = .standard,
-                region: Binding<MKCoordinateRegion?> = .constant(nil),
+    public init(region: Binding<MKCoordinateRegion?> = .constant(nil),
                 isZoomEnabled: Bool = true,
                 isScrollEnabled: Bool = true,
                 showsUserLocation: Bool = true,
                 userTrackingMode: MKUserTrackingMode = .none,
                 annotations: [MapViewAnnotation] = [],
                 selectedAnnotations: Binding<[MapViewAnnotation]> = .constant([])) {
-        self.mapType = mapType
         self._region = region
         self.isZoomEnabled = isZoomEnabled
         self.isScrollEnabled = isScrollEnabled
@@ -109,50 +108,11 @@ public struct MapView: UIViewRepresentable {
     public func makeCoordinator() -> MapView.Coordinator {
         return Coordinator(for: self)
     }
-
-    public func makeUIView(context: UIViewRepresentableContext<MapView>) -> MKMapView {
-        // create view
-        let mapView = MKMapView()
-        mapView.delegate = context.coordinator
-        // register custom annotation view classes
-        mapView.register(MapAnnotationView.self,
-                         forAnnotationViewWithReuseIdentifier: MKMapViewDefaultAnnotationViewReuseIdentifier)
-        mapView.register(MapAnnotationClusterView.self,
-                         forAnnotationViewWithReuseIdentifier: MKMapViewDefaultClusterAnnotationViewReuseIdentifier)
-
-        // configure initial view state
-        self.configureView(mapView, context: context)
-
+    
+    public func mapType(_ mapType: MKMapType) -> MapView {
+        var mapView = self
+        mapView.mapType = mapType
         return mapView
-    }
-
-    public func updateUIView(_ mapView: MKMapView, context: UIViewRepresentableContext<MapView>) {
-        // configure view update
-        self.configureView(mapView, context: context)
-    }
-
-    // MARK: - Configuring view state
-    /**
-     Configures the `mapView`'s state according to the current view state.
-     */
-    private func configureView(_ mapView: MKMapView, context: UIViewRepresentableContext<MapView>) {
-        // basic map configuration
-        mapView.mapType = self.mapType
-        if let mapRegion = self.region {
-            let region = mapView.regionThatFits(mapRegion)
-            
-            if region.center != mapView.region.center || region.span != mapView.region.span {
-                mapView.setRegion(region, animated: true)
-            }
-        }
-        mapView.isZoomEnabled = self.isZoomEnabled
-        mapView.isScrollEnabled = self.isScrollEnabled
-        mapView.showsUserLocation = self.showsUserLocation
-        mapView.userTrackingMode = self.userTrackingMode
-        
-        // annotation configuration
-        self.updateAnnotations(in: mapView)
-        self.updateSelectedAnnotation(in: mapView)
     }
     
     /**
@@ -249,8 +209,105 @@ public struct MapView: UIViewRepresentable {
         }
         
     }
-    
 }
+
+#if os(iOS)
+extension MapView: UIViewRepresentable {
+  public func makeUIView(context: UIViewRepresentableContext<MapView>) -> MKMapView {
+    // create view
+    let mapView = MKMapView()
+    mapView.delegate = context.coordinator
+    // register custom annotation view classes
+    mapView.register(MapAnnotationView.self,
+                     forAnnotationViewWithReuseIdentifier: MKMapViewDefaultAnnotationViewReuseIdentifier)
+//    mapView.register(MapAnnotationClusterView.self,
+//                     forAnnotationViewWithReuseIdentifier: MKMapViewDefaultClusterAnnotationViewReuseIdentifier)
+    
+    // configure initial view state
+    self.configureView(mapView, context: context)
+    
+    return mapView
+  }
+  
+  public func updateUIView(_ mapView: MKMapView, context: UIViewRepresentableContext<MapView>) {
+    // configure view update
+    self.configureView(mapView, context: context)
+  }
+  
+  // MARK: - Configuring view state
+  /**
+   Configures the `mapView`'s state according to the current view state.
+   */
+  private func configureView(_ mapView: MKMapView, context: UIViewRepresentableContext<MapView>) {
+    // basic map configuration
+    mapView.mapType = self.mapType
+    if let mapRegion = self.region {
+      let region = mapView.regionThatFits(mapRegion)
+      
+      if region.center != mapView.region.center || region.span != mapView.region.span {
+        mapView.setRegion(region, animated: true)
+      }
+    }
+    mapView.isZoomEnabled = self.isZoomEnabled
+    mapView.isScrollEnabled = self.isScrollEnabled
+    mapView.showsUserLocation = self.showsUserLocation
+    mapView.userTrackingMode = self.userTrackingMode
+    
+    // annotation configuration
+    self.updateAnnotations(in: mapView)
+    self.updateSelectedAnnotation(in: mapView)
+  }
+}
+#elseif os(macOS)
+extension MapView: NSViewRepresentable {
+  public func makeNSView(context: NSViewRepresentableContext<MapView>) -> MKMapView {
+    // create view
+    let mapView = MKMapView()
+    mapView.delegate = context.coordinator
+    // register custom annotation view classes
+    mapView.register(MapAnnotationView.self,
+                     forAnnotationViewWithReuseIdentifier: MKMapViewDefaultAnnotationViewReuseIdentifier)
+//    mapView.register(MapAnnotationClusterView.self,
+//                     forAnnotationViewWithReuseIdentifier: MKMapViewDefaultClusterAnnotationViewReuseIdentifier)
+    
+    // configure initial view state
+    self.configureView(mapView, context: context)
+    
+    return mapView
+  }
+  
+  public func updateNSView(_ mapView: MKMapView, context: NSViewRepresentableContext<MapView>) {
+    // configure view update
+    self.configureView(mapView, context: context)
+  }
+  
+  // MARK: - Configuring view state
+  /**
+   Configures the `mapView`'s state according to the current view state.
+   */
+  private func configureView(_ mapView: MKMapView, context: NSViewRepresentableContext<MapView>) {
+    // basic map configuration
+    mapView.mapType = self.mapType
+    if let mapRegion = self.region {
+      let region = mapView.regionThatFits(mapRegion)
+      
+      if region.center != mapView.region.center || region.span != mapView.region.span {
+        mapView.setRegion(region, animated: true)
+      }
+    }
+    mapView.isZoomEnabled = self.isZoomEnabled
+    mapView.isScrollEnabled = self.isScrollEnabled
+    mapView.showsUserLocation = self.showsUserLocation
+    mapView.userTrackingMode = self.userTrackingMode
+    
+    // annotation configuration
+    self.updateAnnotations(in: mapView)
+    self.updateSelectedAnnotation(in: mapView)
+  }
+}
+#endif
+
+
 
 // MARK: - Previews
 
@@ -259,6 +316,7 @@ struct MapView_Previews: PreviewProvider {
 
     static var previews: some View {
         MapView()
+          .mapType(.satellite)
     }
 
 }

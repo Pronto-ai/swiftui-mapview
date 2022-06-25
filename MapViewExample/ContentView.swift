@@ -20,20 +20,22 @@ struct ContentView: View {
     
     var body: some View {
         VStack {
-            MapView(mapType: self.type,
-                    region: self.$region,
-                    userTrackingMode: self.trackingMode,
-                    annotations: self.annotations,
-                    selectedAnnotations: self.$selectedAnnotations)
-                .edgesIgnoringSafeArea(.all)
+            MapView(
+                region: self.$region,
+                userTrackingMode: self.trackingMode,
+                annotations: self.annotations,
+                selectedAnnotations: self.$selectedAnnotations
+            )
+            .mapType(.satellite)
+            .edgesIgnoringSafeArea(.all)
             
             ForEach(self.selectedAnnotations.compactMap { $0 as? ExampleAnnotation }) { annotation in
                 Text("\( annotation.title ?? "" )")
             }
             
-            if self.region != nil {
-                Text("\( self.regionToString(self.region!) )")
-            }
+//            if self.region != nil {
+//                Text("\( self.regionToString(self.region!) )")
+//            }
         }
         .onAppear {
             // this is required to display the user's current location
