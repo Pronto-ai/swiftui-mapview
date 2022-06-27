@@ -67,7 +67,7 @@ public struct MapView {
      
      - SeeAlso: selectedAnnotation
      */
-  var annotations: [MapViewAnnotation]
+  var annotations: [MKAnnotation] = []
   
   var overlays: [MKOverlay] = []
     
@@ -77,7 +77,7 @@ public struct MapView {
      When the user selects annotations on the map the value of this binding changes.
      Likewise, setting the value of this binding to a value selects the given annotations.
      */
-    @Binding var selectedAnnotations: [MapViewAnnotation]
+    @Binding var selectedAnnotations: [MKAnnotation]
 
     // MARK: Initializer
     /**
@@ -95,14 +95,12 @@ public struct MapView {
                 isScrollEnabled: Bool = true,
                 showsUserLocation: Bool = true,
                 userTrackingMode: MKUserTrackingMode = .none,
-                annotations: [MapViewAnnotation] = [],
-                selectedAnnotations: Binding<[MapViewAnnotation]> = .constant([])) {
+                selectedAnnotations: Binding<[MKAnnotation]> = .constant([])) {
         self._region = region
         self.isZoomEnabled = isZoomEnabled
         self.isScrollEnabled = isScrollEnabled
         self.showsUserLocation = showsUserLocation
         self.userTrackingMode = userTrackingMode
-        self.annotations = annotations
         self._selectedAnnotations = selectedAnnotations
     }
 
@@ -123,7 +121,7 @@ public struct MapView {
     return mapView
   }
   
-  public func annotations(_ annotations: [MapViewAnnotation]) -> MapView {
+  public func annotations(_ annotations: [MKAnnotation]) -> MapView {
     var mapView = self
     mapView.annotations = annotations
     return mapView
