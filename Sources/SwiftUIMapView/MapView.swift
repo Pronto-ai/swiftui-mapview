@@ -68,6 +68,8 @@ public struct MapView {
      - SeeAlso: selectedAnnotation
      */
     let annotations: [MapViewAnnotation]
+  
+  var overlays: [MKOverlay] = []
     
     /**
      The currently selected annotations.
@@ -114,6 +116,12 @@ public struct MapView {
         mapView.mapType = mapType
         return mapView
     }
+  
+  public func overlays(_ overlays: [MKOverlay]) -> MapView {
+    var mapView = self
+    mapView.overlays = overlays
+    return mapView
+  }
     
     /**
      Updates the annotation property of the `mapView`.
@@ -176,6 +184,28 @@ public struct MapView {
             self.context = context
             super.init()
         }
+      
+      public func mapView(
+        _ mapView: MKMapView,
+        rendererFor overlay: MKOverlay
+      ) -> MKOverlayRenderer {
+        if overlay is MKCircle {
+          let renderer = MKCircleRenderer(overlay: overlay)
+          renderer.fillColor = UIColor.blue.withAlphaComponent(0.5)
+          renderer.strokeColor = UIColor.blue
+          renderer.lineWidth = 1
+          return renderer
+        } else if overlay is MKPolyline {
+          let renderer = MKPolylineRenderer(overlay: overlay)
+          renderer.lineJoin = .round
+          renderer.fillColor = .systemBlue
+          renderer.strokeColor = .systemBlue
+          renderer.lineWidth = 4
+          return renderer
+        }
+        
+        return MKOverlayRenderer()
+      }
         
         // MARK: MKMapViewDelegate
         public func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
@@ -256,6 +286,8 @@ extension MapView: UIViewRepresentable {
     // annotation configuration
     self.updateAnnotations(in: mapView)
     self.updateSelectedAnnotation(in: mapView)
+    
+    mapView.addOverlays(self.overlays)
   }
 }
 #elseif os(macOS)
@@ -303,6 +335,8 @@ extension MapView: NSViewRepresentable {
     // annotation configuration
     self.updateAnnotations(in: mapView)
     self.updateSelectedAnnotation(in: mapView)
+    
+    mapView.addOverlays(self.overlays)
   }
 }
 #endif
