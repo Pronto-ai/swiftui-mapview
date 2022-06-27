@@ -67,7 +67,7 @@ public struct MapView {
      
      - SeeAlso: selectedAnnotation
      */
-    let annotations: [MapViewAnnotation]
+  var annotations: [MapViewAnnotation]
   
   var overlays: [MKOverlay] = []
     
@@ -120,6 +120,12 @@ public struct MapView {
   public func overlays(_ overlays: [MKOverlay]) -> MapView {
     var mapView = self
     mapView.overlays = overlays
+    return mapView
+  }
+  
+  public func annotations(_ annotations: [MapViewAnnotation]) -> MapView {
+    var mapView = self
+    mapView.annotations = annotations
     return mapView
   }
     
