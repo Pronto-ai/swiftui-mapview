@@ -191,8 +191,8 @@ public struct MapView {
       ) -> MKOverlayRenderer {
         if overlay is MKCircle {
           let renderer = MKCircleRenderer(overlay: overlay)
-          renderer.fillColor = UIColor.blue.withAlphaComponent(0.5)
-          renderer.strokeColor = UIColor.blue
+          renderer.fillColor = .blue.withAlphaComponent(0.5)
+          renderer.strokeColor = .blue
           renderer.lineWidth = 1
           return renderer
         } else if overlay is MKPolyline {
